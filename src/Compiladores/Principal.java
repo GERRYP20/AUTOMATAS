@@ -225,7 +225,7 @@ public class Principal extends javax.swing.JFrame
     private void jBCargarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jBCargarMouseClicked
         jTPCompilador.setText("Se cargará el archivo");
         jLEtiqueta1.setText("PROGRAMA FUENTE");
-        jLEtiqueta2.setText("PROGRAMA COMPILADOR");
+        jLEtiqueta2.setText("PROGRAM COMPILADOR");
         jBGuardar.setEnabled(true);
         jBLexico.setEnabled(true);
         jBSintactico.setEnabled(false);
