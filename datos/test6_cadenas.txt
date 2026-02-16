@@ -1,6 +1,6 @@
-escribir "Hola Mundo";
-escribir 'Otra cadena de texto';
-cad mensaje;
-mensaje = "Este es un mensaje";
-cad otro;
-otro = 'Comillas simples';
+write "Hello World";
+write 'Another text string';
+string message;
+message = "This is a message";
+string other;
+other = 'Single quotes';

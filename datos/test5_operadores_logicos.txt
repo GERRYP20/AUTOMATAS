@@ -1,14 +1,14 @@
-num x;
-num y;
+int x;
+int y;
 x = 50;
 y = 100;
-condicion1 = x > 10 && y < 200;
-condicion2 = x == 50 || y == 50;
-si x >= 10 && x <= 100 entonces
+condition1 = x > 10 && y < 200;
+condition2 = x == 50 || y == 50;
+if x >= 10 && x <= 100 then
 {
-    escribir "X esta en el rango";
+    write "X is in range";
 }
-si x <> 0 || y <> 0 entonces
+if x <> 0 || y <> 0 then
 {
-    escribir "Al menos uno es diferente de cero";
+    write "At least one is different from zero";
 }

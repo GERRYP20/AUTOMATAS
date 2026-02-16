@@ -1,0 +1,1 @@
+Main # int age string name float balance age = 18 name = "test" balance = 100.50 # id Main

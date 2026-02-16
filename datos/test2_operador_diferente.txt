@@ -1,9 +1,9 @@
-num x;
-num y;
+int x;
+int y;
 x = 100;
 y = 50;
-si x <> y entonces
+if x <> y then
 {
-    escribir "Los numeros son diferentes";
+    write "The numbers are different";
 }
-condicion = x <> 0;
+condition = x <> 0;

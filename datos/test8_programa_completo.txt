@@ -1,31 +1,31 @@
-Principal
+Main
 {
-    num contador;
-    cad nombre;
-    dec saldo;
+    int counter;
+    string name;
+    float balance;
     
-    contador = 0;
-    nombre = "Usuario";
-    saldo = 1000.50;
+    counter = 0;
+    name = "User";
+    balance = 1000.50;
     
-    escribir "Bienvenido al sistema";
-    leer nombre;
+    write "Welcome to the system";
+    read name;
     
-    mientras contador < 10
+    while counter < 10
     {
-        contador = contador + 1;
-        escribir "Iteracion";
+        counter = counter + 1;
+        write "Iteration";
     }
     
-    si saldo >= 100.00 && saldo <> 0 entonces
+    if balance >= 100.00 && balance <> 0 then
     {
-        escribir "Tiene saldo disponible";
+        write "Balance available";
     }
     
-    # Funcion de ejemplo
-    Funcion calcular(num a, num b)
+    # Example function
+    Function calculate(int a, int b)
     {
-        num resultado;
-        resultado = a + b;
+        int result;
+        result = a + b;
     }
 }

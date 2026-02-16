@@ -1,8 +1,8 @@
-num edad;
-edad = 18;
-escribir "Ingrese su edad";
-leer edad;
-si edad >= 18 entonces
+int age;
+age = 18;
+write "Enter your age";
+read age;
+if age >= 18 then
 {
-    escribir "Eres mayor de edad";
+    write "You are an adult";
 }

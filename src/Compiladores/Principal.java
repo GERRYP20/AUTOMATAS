@@ -286,8 +286,8 @@ public class Principal extends javax.swing.JFrame
         // Use Sintactico to perform parsing
         boolean success = sintactico.parse(vectorSalida);
         
-        if (sintactico.hasError()) {
-            jTPFuente.setText(jTPFuente.getText() + "\n\n " + sintactico.getErrorMessage());
+        if (sintactico.hasErrors()) {
+            jTPFuente.setText(jTPFuente.getText() + "\n\n" + sintactico.getAllErrors());
         } else if (success) {
             jTPFuente.setText(sintactico.getFullPilaHistory() + "\n\n Sintacticamente correcto");
             jTPCompilador.setText(sintactico.getEntradaHistory());

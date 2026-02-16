@@ -1,9 +1,9 @@
-num entero;
-entero = 12345;
-dec decimal;
+int integer;
+integer = 12345;
+float decimal;
 decimal = 123.456;
-dec precio;
-precio = 99.99;
-num cantidad;
-cantidad = 100;
-total = cantidad * precio;
+float price;
+price = 99.99;
+int quantity;
+quantity = 100;
+total = quantity * price;

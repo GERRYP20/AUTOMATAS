@@ -1,0 +1,31 @@
+Main
+{
+    int counter
+    string name
+    float balance
+    
+    counter = 0
+    name = "User"
+    balance = 1000.50
+    
+    write "Welcome to the system"
+    read name
+    
+    while counter < 10
+    {
+        counter = counter + 1
+        write "Iteration"
+    
+    
+    if balance >= 100.00 && balance <> 0 then
+    {
+        write "Balance available"
+    }
+    
+    # Example function
+    Function calculate(int a, int b)
+    {
+        int result
+        result = a + b
+    }
+}

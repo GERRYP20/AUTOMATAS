@@ -10,32 +10,61 @@ public class Sintactico {
     private int[] stack;
     private List<String> pilaHistory;
     private List<String> entradaHistory;
+    private List<String> errorMessages;
     private boolean errorDetected;
     private String errorMessage;
+    private int errorCount;
+    private final int MAX_ERRORS = 20;
+    private int lastTokenIndex;
+    private int lastStackSize;
+    private int tokensSinceLastError;
+    private boolean inRecoveryMode;
+    private int[] tokenLineNumbers;
+    
+    // Synchronization tokens for panic mode recovery (structural tokens only)
+    private static final int[] SYNC_TOKENS = {3, 8, 1, 4, 5, 14, 15, 16, 19, 9, 20};
     
     public Sintactico() {
         this.pilaHistory = new ArrayList<>();
         this.entradaHistory = new ArrayList<>();
+        this.errorMessages = new ArrayList<>();
         this.errorDetected = false;
+        this.errorCount = 0;
     }
     
     public boolean parse(int[] tokens) {
+        return parse(tokens, null);
+    }
+    
+    public boolean parse(int[] tokens, int[] lineNumbers) {
         // Clean tokens (remove 0s)
         List<Integer> cleanTokens = new ArrayList<>();
-        for (int token : tokens) {
-            if (token != 0) cleanTokens.add(token);
+        List<Integer> cleanLines = new ArrayList<>();
+        for (int i = 0; i < tokens.length; i++) {
+            if (tokens[i] != 0) {
+                cleanTokens.add(tokens[i]);
+                cleanLines.add(lineNumbers != null && i < lineNumbers.length ? lineNumbers[i] : i + 1);
+            }
         }
         
         this.tokens = new int[cleanTokens.size()];
+        this.tokenLineNumbers = new int[cleanLines.size()];
         for (int i = 0; i < cleanTokens.size(); i++) {
             this.tokens[i] = cleanTokens.get(i);
+            this.tokenLineNumbers[i] = cleanLines.get(i);
         }
         
         this.currentIndex = 0;
         this.errorDetected = false;
         this.errorMessage = "";
+        this.errorCount = 0;
+        this.errorMessages.clear();
         this.pilaHistory.clear();
         this.entradaHistory.clear();
+        this.lastTokenIndex = 0;
+        this.lastStackSize = 0;
+        this.tokensSinceLastError = 0;
+        this.inRecoveryMode = false;
         
         // Initialize stack with $ and start symbol
         stack = new int[]{0, 150}; // 0 = $, 150 = <Principal>
@@ -46,17 +75,43 @@ public class Sintactico {
         // Parsing loop
         while (currentIndex < this.tokens.length || (stack.length > 1 && stack[stack.length - 1] >= 150)) {
             
+            // Track progress since last error
+            if (tokensSinceLastError > 0) {
+                tokensSinceLastError--;
+                if (tokensSinceLastError == 0) {
+                    inRecoveryMode = false;
+                }
+            }
+            
+            // Check for infinite loop - if no progress was made
+            if (currentIndex == lastTokenIndex && stack.length == lastStackSize) {
+                // Force recovery if stuck
+                if (!tryRecover()) {
+                    break;
+                }
+            }
+            lastTokenIndex = currentIndex;
+            lastStackSize = stack.length;
+            
+            // Check for maximum errors reached
+            if (errorCount >= MAX_ERRORS) {
+                errorMessages.add("Se alcanzo el limite maximo de errores (" + MAX_ERRORS + ").");
+                break;
+            }
+            
             // Check for lexical errors
             if (currentIndex < this.tokens.length) {
                 if (this.tokens[currentIndex] >= 100) {
-                    errorDetected = true;
-                    errorMessage = getTokenName(this.tokens[currentIndex]);
-                    return false;
+                    String error = formatError("Error lexico", "Token no valido: " + getTokenName(this.tokens[currentIndex]));
+                    addError(error);
+                    currentIndex++; // Skip the erroneous token
+                    continue;
                 }
                 if (this.tokens[currentIndex] >= 54 && this.tokens[currentIndex] < 100) {
-                    errorDetected = true;
-                    errorMessage = "ID desconocido: " + this.tokens[currentIndex];
-                    return false;
+                    String error = formatError("Error lexico", "ID desconocido: " + this.tokens[currentIndex]);
+                    addError(error);
+                    currentIndex++; // Skip the erroneous token
+                    continue;
                 }
             }
             
@@ -67,9 +122,12 @@ public class Sintactico {
                 int ntIndex = top - 150;
                 
                 if (currentIndex >= this.tokens.length) {
-                    errorDetected = true;
-                    errorMessage = "Error sintactico: Fin de archivo inesperado";
-                    return false;
+                    if (!inRecoveryMode) {
+                        String error = formatError("Error sintactico", "Fin de archivo inesperado, se esperaba [" + Grammar.getNonTerminalName(top) + "]");
+                        addError(error);
+                    }
+                    if (!tryRecover()) break;
+                    continue;
                 }
                 
                 int tokenIndex = this.tokens[currentIndex] - 1;
@@ -81,19 +139,24 @@ public class Sintactico {
                     recordState();
                 } else {
                     // Syntax error
-                    errorDetected = true;
-                    String received = getTokenName(this.tokens[currentIndex]);
-                    String expected = Grammar.getNonTerminalName(top);
-                    errorMessage = "Error sintactico: Recibido [" + received + "], se esperaba [" + expected + "]";
-                    return false;
+                    if (!inRecoveryMode) {
+                        String received = getTokenName(this.tokens[currentIndex]);
+                        String expected = Grammar.getNonTerminalName(top);
+                        String error = formatError("Error sintactico", "Recibido [" + received + "], se esperaba [" + expected + "]");
+                        addError(error);
+                    }
+                    if (!tryRecover()) break;
                 }
             }
             // Case 2: Terminal on stack top
             else {
                 if (currentIndex >= this.tokens.length) {
-                    errorDetected = true;
-                    errorMessage = "Error sintactico: Fin de archivo inesperado";
-                    return false;
+                    if (!inRecoveryMode) {
+                        String error = formatError("Error sintactico", "Fin de archivo inesperado, se esperaba [" + getTokenName(top) + "]");
+                        addError(error);
+                    }
+                    if (!tryRecover()) break;
+                    continue;
                 }
                 
                 if (this.tokens[currentIndex] == top) {
@@ -103,17 +166,19 @@ public class Sintactico {
                     recordState();
                 } else {
                     // Mismatch error
-                    errorDetected = true;
-                    String received = getTokenName(this.tokens[currentIndex]);
-                    String expected = getTokenName(top);
-                    errorMessage = "Error sintactico: Recibido [" + received + "], Se esperaba [" + expected + "]";
-                    return false;
+                    if (!inRecoveryMode) {
+                        String received = getTokenName(this.tokens[currentIndex]);
+                        String expected = getTokenName(top);
+                        String error = formatError("Error sintactico", "Recibido [" + received + "], se esperaba [" + expected + "]");
+                        addError(error);
+                    }
+                    if (!tryRecover()) break;
                 }
             }
         }
         
-        // Success if stack is reduced to just $
-        return !errorDetected && stack.length > 0 && stack[stack.length - 1] == 0;
+        // Success if stack is reduced to just $ and no errors
+        return errorCount == 0 && stack.length > 0 && stack[stack.length - 1] == 0;
     }
     
     private void expandStack(int rule) {
@@ -135,6 +200,111 @@ public class Sintactico {
         int[] newStack = new int[stack.length - 1];
         System.arraycopy(stack, 0, newStack, 0, newStack.length);
         stack = newStack;
+    }
+    
+    private void addError(String error) {
+        errorMessages.add(error);
+        errorDetected = true;
+        errorCount++;
+        inRecoveryMode = true;
+        tokensSinceLastError = 3; // Stay in recovery mode for 3 tokens
+    }
+    
+    private String formatError(String type, String message) {
+        int line = (currentIndex < tokenLineNumbers.length) ? tokenLineNumbers[currentIndex] : currentIndex + 1;
+        String tokenName = (currentIndex < tokens.length) ? getTokenName(tokens[currentIndex]) : "EOF";
+        return type + " en linea " + line + ": " + message;
+    }
+    
+    private boolean tryRecover() {
+        // Panic mode recovery: skip tokens until synchronization token is found
+        int initialIndex = currentIndex;
+        inRecoveryMode = true;
+        
+        // Skip current erroneous token
+        if (currentIndex < tokens.length) {
+            currentIndex++;
+        }
+        
+        // Look for synchronization token
+        while (currentIndex < tokens.length) {
+            int currentToken = tokens[currentIndex];
+            
+            // Check if current token is a synchronization token
+            if (isSyncToken(currentToken)) {
+                // Try to synchronize the stack - this will pop elements until valid
+                if (synchronizeStack(currentToken)) {
+                    tokensSinceLastError = 3; // Reset recovery counter
+                    // Don't advance currentIndex - let the main loop process the sync token
+                    return true;
+                }
+            }
+            currentIndex++;
+        }
+        
+        // If we reached end of file, try to clear stack
+        if (currentIndex >= tokens.length) {
+            // Pop all non-terminals and unmatched terminals
+            while (stack.length > 1) {
+                popStack();
+            }
+            return true;
+        }
+        
+        return currentIndex > initialIndex;
+    }
+    
+    private boolean isSyncToken(int token) {
+        for (int syncToken : SYNC_TOKENS) {
+            if (token == syncToken) return true;
+        }
+        return false;
+    }
+    
+    private boolean synchronizeStack(int syncToken) {
+        // Try to pop stack until we find a state that can handle the sync token
+        // Actually modify the stack, not just check
+        boolean modified = false;
+        
+        while (stack.length > 1) {
+            int top = stack[stack.length - 1];
+            
+            if (Grammar.isNonTerminal(top)) {
+                int ntIndex = top - 150;
+                int tokenIndex = syncToken - 1;
+                
+                if (tokenIndex >= 0 && tokenIndex < Grammar.MATRIX[0].length) {
+                    int rule = Grammar.MATRIX[ntIndex][tokenIndex];
+                    if (rule != -1) {
+                        // Found a matching rule - expand it
+                        expandStack(rule);
+                        modified = true;
+                        return true;
+                    }
+                }
+                // Cannot derive sync token, pop and try next
+                popStack();
+                modified = true;
+            } else {
+                // Terminal on stack - check if it matches sync token
+                if (top == syncToken) {
+                    // Stack is ready for this sync token
+                    return true;
+                }
+                // Pop mismatched terminal
+                popStack();
+                modified = true;
+            }
+        }
+        
+        // If stack is empty except $, add Principal back
+        if (stack.length == 1 && stack[0] == 0) {
+            int[] newStack = new int[]{0, 150};
+            stack = newStack;
+            return true;
+        }
+        
+        return modified;
     }
     
     private void recordState() {
@@ -184,8 +354,29 @@ public class Sintactico {
         return errorDetected;
     }
     
+    public boolean hasErrors() {
+        return errorCount > 0;
+    }
+    
+    public int getErrorCount() {
+        return errorCount;
+    }
+    
     public String getErrorMessage() {
         return errorMessage;
+    }
+    
+    public String getAllErrors() {
+        if (errorMessages.isEmpty()) {
+            return "No se encontraron errores.";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("Total de errores encontrados: ").append(errorCount).append("\n\n");
+        for (int i = 0; i < errorMessages.size(); i++) {
+            sb.append("Error ").append(i + 1).append(": ").append(errorMessages.get(i)).append("\n");
+        }
+        return sb.toString();
     }
     
     public static String getTokenName(int id) {
