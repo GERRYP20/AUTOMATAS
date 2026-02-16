@@ -518,6 +518,9 @@ public class Principal extends javax.swing.JFrame
         // VARIABLES DE HISTORIAL (Acumulan el texto para mostrarlos línea por línea)
         String historialPila = jTPFuente.getText(); 
         String historialEntrada = jTPCompilador.getText();
+        
+        // Flag para detectar errores sintácticos
+        boolean errorSintactico = false;
 
         do {
             // Verificar errores léxicos
@@ -574,6 +577,7 @@ public class Principal extends javax.swing.JFrame
 
                 } else {
                     // ERROR SINTÁCTICO
+                    errorSintactico = true;
                     String rec = obtenerNombreToken(vectorSalida[i]);
                     String esp = obtenerNombreToken(pr + 150);
                     jTPFuente.setText(historialPila + "\n\n Error sintactico: Recibido [" + rec + "], se esperaba [" + esp + "]");
@@ -612,6 +616,7 @@ public class Principal extends javax.swing.JFrame
                     
                 } else {
                     // ERROR DE COINCIDENCIA
+                    errorSintactico = true;
                     String rec = obtenerNombreToken(vectorSalida[i]);
                     String esp = obtenerNombreToken(vectorMov[vectorMov.length - 1]);
                     jTPFuente.setText(historialPila + "\n\n Error sintactico: Recibido [" + rec + "], Se esperaba [" + esp + "]");
@@ -621,7 +626,7 @@ public class Principal extends javax.swing.JFrame
         } while (i < vectorSalida.length || (vectorMov.length > 1 && vectorMov[vectorMov.length-1] >= 150));
 
         // Éxito final
-        if (vectorMov.length > 0 && vectorMov[vectorMov.length - 1] == 0) {
+        if (!errorSintactico && vectorMov.length > 0 && vectorMov[vectorMov.length - 1] == 0) {
             jTPFuente.setText(historialPila + "\n\n Sintacticamente correcto");
         }
     }//GEN-LAST:event_jBSintacticoMouseClicked
