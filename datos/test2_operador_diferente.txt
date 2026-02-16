@@ -1,0 +1,9 @@
+num x;
+num y;
+x = 100;
+y = 50;
+si x <> y entonces
+{
+    escribir "Los numeros son diferentes";
+}
+condicion = x <> 0;

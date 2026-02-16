@@ -1,0 +1,29 @@
+Principal SistemaConFuncion #
+    
+    Comentario { "Variables" }
+    entrada, salida num;
+    mensaje cad;
+
+    Comentario { "Funcion" }
+    Funcion calcular ( dato num ) #
+        salida = dato * 2;
+    #
+
+    Comentario { "Asignacion" }
+    entrada = 10;
+    salida = 0;
+    mensaje = "Calculo terminado";
+
+    Comentario { "Estructura mientrasl" }
+    mientras ( salida <= entrada ) #
+        salida = salida + 1;
+    #
+
+    Comentario { "Estructura si" }
+    si ( salida != 20 ) #
+        escribir( mensaje, salida );
+    #
+    entonces #
+        escribir( "Salida exacta" );
+    #
+#

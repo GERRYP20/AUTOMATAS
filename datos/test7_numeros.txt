@@ -1,0 +1,9 @@
+num entero;
+entero = 12345;
+dec decimal;
+decimal = 123.456;
+dec precio;
+precio = 99.99;
+num cantidad;
+cantidad = 100;
+total = cantidad * precio;

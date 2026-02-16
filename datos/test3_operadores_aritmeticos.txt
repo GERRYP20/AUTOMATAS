@@ -1,0 +1,7 @@
+num resultado;
+resultado = 10 + 20 - 5 * 2 / 4 % 3;
+dec precio;
+precio = 99.99;
+cad nombre;
+nombre = "Juan Perez";
+escribir 'Resultado calculado';

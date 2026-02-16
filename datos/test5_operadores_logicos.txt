@@ -1,0 +1,14 @@
+num x;
+num y;
+x = 50;
+y = 100;
+condicion1 = x > 10 && y < 200;
+condicion2 = x == 50 || y == 50;
+si x >= 10 && x <= 100 entonces
+{
+    escribir "X esta en el rango";
+}
+si x <> 0 || y <> 0 entonces
+{
+    escribir "Al menos uno es diferente de cero";
+}

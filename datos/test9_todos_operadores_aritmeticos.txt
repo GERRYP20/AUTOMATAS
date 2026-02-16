@@ -1,0 +1,12 @@
+x = 10;
+y = 20;
+z = x + y;
+a = x - y;
+b = x * y;
+c = x / y;
+d = x % y;
+suma = 1 + 2 + 3 + 4 + 5;
+resta = 100 - 50 - 10;
+multiplicacion = 2 * 3 * 4;
+division = 100 / 10 / 2;
+modulo = 17 % 5;

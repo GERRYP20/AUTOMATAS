@@ -1,0 +1,22 @@
+num x;
+x = 50;
+si x == 50 entonces
+{
+    escribir "X es igual a 50";
+}
+si x != 100 entonces
+{
+    escribir "X es diferente de 100";
+}
+si x >= 10 entonces
+{
+    escribir "X es mayor o igual a 10";
+}
+si x <= 100 entonces
+{
+    escribir "X es menor o igual a 100";
+}
+si x <> 0 entonces
+{
+    escribir "X es diferente de cero";
+}

@@ -1,0 +1,8 @@
+num edad;
+edad = 18;
+escribir "Ingrese su edad";
+leer edad;
+si edad >= 18 entonces
+{
+    escribir "Eres mayor de edad";
+}

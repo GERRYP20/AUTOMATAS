@@ -1,0 +1,31 @@
+Principal
+{
+    num contador;
+    cad nombre;
+    dec saldo;
+    
+    contador = 0;
+    nombre = "Usuario";
+    saldo = 1000.50;
+    
+    escribir "Bienvenido al sistema";
+    leer nombre;
+    
+    mientras contador < 10
+    {
+        contador = contador + 1;
+        escribir "Iteracion";
+    }
+    
+    si saldo >= 100.00 && saldo <> 0 entonces
+    {
+        escribir "Tiene saldo disponible";
+    }
+    
+    # Funcion de ejemplo
+    Funcion calcular(num a, num b)
+    {
+        num resultado;
+        resultado = a + b;
+    }
+}

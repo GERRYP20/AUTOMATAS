@@ -1,0 +1,8 @@
+igual = x == 10;
+diferente1 = x != 10;
+diferente2 = x <> 10;
+mayor_igual = x >= 10;
+menor_igual = x <= 10;
+combinado1 = x == 10 && y <> 20;
+combinado2 = a != 5 || b <> 15;
+combinado3 = x >= 0 && x <= 100 && x <> 50;
